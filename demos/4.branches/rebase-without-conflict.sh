@@ -113,6 +113,8 @@ function rebase {
 
 function test_my_rebase_updates_working_copy {
     prepare_for_rebase_exploration
+
+    cd /usr/local/src/demos/4.branches/clients/bob
     svn switch ^/branches/one
     rebase ^/trunk
 
