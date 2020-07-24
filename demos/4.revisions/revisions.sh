@@ -6,16 +6,16 @@ function revision_list {
 
 
 function test_can_extract_list_of_revisions {
-    cd /usr/local/src/demos/4.commit-info
+    cd /usr/local/src/demos/4.revisions
     rm -rf server
     rm -rf client
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/4.commit-info/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/4.revisions/server/trunk -m "trunk created"
     
     mkdir client
     cd client
-    svn checkout file:///usr/local/src/demos/4.commit-info/server/trunk 
+    svn checkout file:///usr/local/src/demos/4.revisions/server/trunk 
     cd trunk
 
     echo "hello world" > hello.txt
@@ -29,16 +29,16 @@ function test_can_extract_list_of_revisions {
 }
 
 function test_extract_commit_message {
-    cd /usr/local/src/demos/4.commit-info
+    cd /usr/local/src/demos/4.revisions
     rm -rf server
     rm -rf client
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/4.commit-info/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/4.revisions/server/trunk -m "trunk created"
     
     mkdir client
     cd client
-    svn checkout file:///usr/local/src/demos/4.commit-info/server/trunk 
+    svn checkout file:///usr/local/src/demos/4.revisions/server/trunk 
     cd trunk
 
     echo "hello world" > hello.txt
