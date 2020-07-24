@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function revision_list {
+    grep "r[0-9]* |" | cut -d'|' -f1 | cut -d' ' -f1 | tr '\n' '-' | head -c -1
+}
+
+
 function test_can_extract_list_of_revisions {
     cd /usr/local/src/demos/4.commit-info
     rm -rf server
