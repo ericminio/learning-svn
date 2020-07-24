@@ -21,7 +21,7 @@ function test_commit_dont_update_local_log {
     assertequals $visible 0
 }
 
-function test_update_after_commit_is_needed {
+function test_commit_appears_in_local_log_after_update {
     cd /usr/local/src/demos/3.commits
     rm -rf server
     rm -rf client

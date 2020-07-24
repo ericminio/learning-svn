@@ -1,16 +1,16 @@
 #!/bin/bash
 
 function test_branching {
-    cd /usr/local/src/demos/5.branches
+    cd /usr/local/src/demos/4.branches
     rm -rf server
     rm -rf clients
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/5.branches/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/4.branches/server/trunk -m "trunk created"
     
     mkdir -p clients/bob
     cd clients/bob
-    svn checkout file:///usr/local/src/demos/5.branches/server/trunk .    
+    svn checkout file:///usr/local/src/demos/4.branches/server/trunk .    
 
     echo "hello trunk" > trunk.txt
     svn add trunk.txt

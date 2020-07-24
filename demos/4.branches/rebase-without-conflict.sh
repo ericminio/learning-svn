@@ -1,16 +1,16 @@
 #!/bin/bash
 
 function prepare_for_rebase_exploration {
-    cd /usr/local/src/demos/5.branches
+    cd /usr/local/src/demos/4.branches
     rm -rf server
     rm -rf clients
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/5.branches/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/4.branches/server/trunk -m "trunk created"
     
     mkdir -p clients/bob
     cd clients/bob
-    svn checkout file:///usr/local/src/demos/5.branches/server/trunk .    
+    svn checkout file:///usr/local/src/demos/4.branches/server/trunk .    
 
     echo "hello trunk" > trunk.txt
     svn add trunk.txt
@@ -95,8 +95,9 @@ function test_rebase_applies_patches_on_top_of_base {
     svn switch ^/branches/one
     apply_patches
     svn update
+    local number=`svn info --show-item revision`    
     
-    assertequals "$(svn log --use-merge-history ^/branches/one | revision_list)" "r10-r9-r8-r4-r2-r1"
+    assertequals "$(svn log -r$number | commit_message)" "file modified in branch"
 }
 
 function rebase {

@@ -4,18 +4,22 @@ function revision_list {
     grep "r[0-9]* |" | cut -d'|' -f1 | cut -d' ' -f1 | tr '\n' '-' | head -c -1
 }
 
+function commit_message {
+    tail -n +4 | head -n -1
+}
 
-function test_can_extract_list_of_revisions {
-    cd /usr/local/src/demos/4.revisions
+
+function test_log_can_provide_list_of_revisions {
+    cd /usr/local/src/demos/3.commits
     rm -rf server
     rm -rf client
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/4.revisions/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/3.commits/server/trunk -m "trunk created"
     
     mkdir client
     cd client
-    svn checkout file:///usr/local/src/demos/4.revisions/server/trunk 
+    svn checkout file:///usr/local/src/demos/3.commits/server/trunk 
     cd trunk
 
     echo "hello world" > hello.txt
@@ -23,22 +27,22 @@ function test_can_extract_list_of_revisions {
     svn commit -m "file added"   
     svn update
 
-    local revisions=`svn log | grep "r[0-9]* |" | cut -d'|' -f1 | cut -d' ' -f1 | tr '\n' '-' | head -c -1`
+    local revisions=`svn log | revision_list`
     
     assertequals $revisions "r2-r1"
 }
 
-function test_extract_commit_message {
-    cd /usr/local/src/demos/4.revisions
+function test_log_can_provide_commit_message {
+    cd /usr/local/src/demos/3.commits
     rm -rf server
     rm -rf client
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/4.revisions/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/3.commits/server/trunk -m "trunk created"
     
     mkdir client
     cd client
-    svn checkout file:///usr/local/src/demos/4.revisions/server/trunk 
+    svn checkout file:///usr/local/src/demos/3.commits/server/trunk 
     cd trunk
 
     echo "hello world" > hello.txt
@@ -47,7 +51,7 @@ function test_extract_commit_message {
     svn update
 
     local revision="r2"
-    local message=`svn log -$revision | tail -n +4 | head -n -1`
+    local message=`svn log -$revision | commit_message`
     
     assertequals "$message" "file added"
 }
