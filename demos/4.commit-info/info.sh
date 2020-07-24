@@ -22,3 +22,27 @@ function test_can_extract_list_of_revisions {
     
     assertequals $revisions "r2-r1"
 }
+
+function test_extract_commit_message {
+    cd /usr/local/src/demos/4.commit-info
+    rm -rf server
+    rm -rf client
+
+    svnadmin create server
+    svn mkdir file:///usr/local/src/demos/4.commit-info/server/trunk -m "trunk created"
+    
+    mkdir client
+    cd client
+    svn checkout file:///usr/local/src/demos/4.commit-info/server/trunk 
+    cd trunk
+
+    echo "hello world" > hello.txt
+    svn add hello.txt
+    svn commit -m "file added"   
+    svn update
+
+    local revision="r2"
+    local message=`svn log -$revision | tail -n +4 | head -n -1`
+    
+    assertequals "$message" "file added"
+}
