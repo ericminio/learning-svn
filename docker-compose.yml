@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+
+  svn:
+    build: .
+    image: svn:alpine
+    container_name: svn
+    volumes:
+      - .:/usr/local/src

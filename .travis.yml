@@ -1,0 +1,7 @@
+dist: xenial
+language: bash
+services:
+    - docker
+script:
+    - chmod +x ./support/test.sh
+    - docker-compose run --rm bash ./support/test.sh ./demo
