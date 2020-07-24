@@ -75,3 +75,45 @@ function test_dont_keep_patch_for_original_branching_out_operation {
 
     assertequals $count 2
 }
+
+function apply_patches {
+    local count=`ls -la .patches/patch*-commit-message | wc -l`
+    for (( n=1; n<=$count; n++ )); do
+        local message=`cat .patches/patch-$n-commit-message`
+        svn patch .patches/patch-$n
+        svn commit -m "$message"
+    done
+}
+
+function test_rebase_applies_patches_on_top_of_base {
+    prepare_for_rebase_exploration
+
+    save_patches
+    svn switch ^/trunk
+    svn remove ^/branches/one -m "removed before rebase"
+    svn copy --parents ^/trunk ^/branches/one -m "rebase starts here"
+    svn switch ^/branches/one
+    apply_patches
+    svn update
+    
+    assertequals "$(svn log --use-merge-history ^/branches/one | revision_list)" "r10-r9-r8-r4-r2-r1"
+}
+
+function rebase {
+    local branch=`svn info --show-item relative-url`
+    save_patches
+    svn switch ^/trunk
+    svn remove $branch -m "removed before rebase"
+    svn copy --parents $1 $branch -m "rebase starts here"
+    svn switch $branch
+    apply_patches
+    svn update
+}
+
+function test_my_rebase_updates_working_copy {
+    prepare_for_rebase_exploration
+    svn switch ^/branches/one
+    rebase ^/trunk
+
+    assertequals "$(svn log --use-merge-history ^/branches/one | revision_list)" "r10-r9-r8-r4-r2-r1"
+}
