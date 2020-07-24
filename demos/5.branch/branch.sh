@@ -17,11 +17,16 @@ function test_branching {
     svn commit -m "file added in trunk"
 
     svn copy --parents ^/trunk ^/branches/one -m "branched from trunk"
+
+    echo "modified" >> trunk.txt
+    svn commit -m "file modified in trunk"
+
     svn switch ^/branches/one
     echo "hello branch" > branch.txt
     svn add branch.txt
     svn commit -m "file added in branch"    
 
-    assertequals "$(svn log ^/branches/one | revision_list)" "r4-r3-r2-r1"
-    assertequals "$(svn log ^/trunk | revision_list)" "r2-r1"
+    local revisions="$(svn log ^/branches/one | revision_list) vs. $(svn log ^/trunk | revision_list)"
+    
+    assertequals "$revisions" "r5-r3-r2-r1 vs. r4-r2-r1"
 }
