@@ -102,6 +102,11 @@ function test_rebase_applies_patches_on_top_of_base {
 
 function rebase {
     local branch=`svn info --show-item relative-url`
+    if (( `echo $branch | grep "trunk" | wc -l` > 0 )); then
+        echo "no go!"
+        return
+    fi
+    
     save_patches
     svn switch ^/trunk
     svn remove $branch -m "removed before rebase"
@@ -119,4 +124,14 @@ function test_my_rebase_updates_working_copy {
     rebase ^/trunk
 
     assertequals "$(svn log --use-merge-history ^/branches/one | revision_list)" "r10-r9-r8-r4-r2-r1"
+}
+
+function test_protection_against_trunk_destruction {
+    prepare_for_rebase_exploration
+
+    cd /usr/local/src/demos/4.branches/clients/bob
+    svn switch ^/trunk
+    local message=`rebase ^/trunk`
+
+    assertequals "$message" "no go!"
 }
