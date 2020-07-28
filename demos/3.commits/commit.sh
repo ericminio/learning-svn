@@ -131,3 +131,27 @@ function test_can_commit_single_file {
 
     assertequals "$status" "M       two.txt"
 }
+
+function test_can_schedule_everything_new_for_next_commit {
+    cd /usr/local/src/demos/3.commits
+    rm -rf server
+    rm -rf client
+
+    svnadmin create server
+    svn mkdir file:///usr/local/src/demos/3.commits/server/trunk -m "trunk created"
+    
+    mkdir client
+    cd client
+    svn checkout file:///usr/local/src/demos/3.commits/server/trunk 
+    cd trunk
+
+    echo "one" > one.txt
+    echo "two" > two.txt
+    svn add *
+    
+    assertequals "$(svn status)" "$(
+        echo "A       one.txt" &&
+        echo "A       two.txt"
+    )"
+    
+}
