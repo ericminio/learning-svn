@@ -43,4 +43,4 @@ fi
 for name in `echo "$test" | names`; do
     run_test $name
 done
-echo "SUCCESS"
+echo -e "\nSUCCESS"
