@@ -80,7 +80,7 @@ function test_my_rebase_updates_working_copy {
     svn switch ^/branches/one
     rebase ^/trunk
 
-    assertequals "$(svn log --use-merge-history ^/branches/one | revision_list)" "r10-r9-r8-r4-r2-r1"
+    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "file modified in branch"
 }
 function test_protection_against_trunk_destruction {
     prepare_for_rebase_exploration
@@ -124,14 +124,14 @@ function prepare_for_rebase_exploration_with_conflict {
     svn commit -m "branch file modified in branch"
     svn update
 }
-function test_rebase_stops_with_first_conflict {
+function test_rebase_stops_before_first_conflict {
     prepare_for_rebase_exploration_with_conflict
 
     cd /usr/local/src/demos/4.branches/clients/bob
     svn switch ^/branches/one
     rebase ^/trunk
     
-    assertequals "$(svn log --limit 1 | commit_message)" "file added in branch"
+    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "file added in branch"
 }
 function test_rebase_offers_one_way_to_continue_after_conflict {
     prepare_for_rebase_exploration_with_conflict
@@ -143,5 +143,5 @@ function test_rebase_offers_one_way_to_continue_after_conflict {
     mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
     rebase ^/trunk --continue
 
-    assertequals "$(svn log --limit 1 | commit_message)" "branch file modified in branch"
+    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "branch file modified in branch"
 }

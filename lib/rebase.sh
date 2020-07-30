@@ -2,9 +2,10 @@
 
 function save_patches {
     mkdir .patches
-    local count=$(( $(svn log --stop-on-copy | grep "r[0-9]* |" | wc -l) - 1 ))
+    local revisions=`svn log --stop-on-copy | grep "r[0-9]* |"`
+    local count=$(( $(echo "$revisions" | wc -l) - 1 ))
     local i=0
-    for r in $(svn log --stop-on-copy | grep "r[0-9]* |" | cut -d'|' -f1 | cut -d' ' -f1); do
+    for r in $(echo "$revisions" | cut -d'|' -f1 | cut -d' ' -f1); do
         local n=$(( $count -$i ))
         if (( n > 0 )); then
             svn diff --change $r > .patches/patch-$n
@@ -15,12 +16,14 @@ function save_patches {
     done    
 }
 function apply_patches {
-    for candidate in `ls .patches/patch*-commit-message`; do
+    for candidate in `ls .patches/patch-*-commit-message`; do
         local n=$(echo "$candidate" | cut -d'/' -f2 | cut -d'-' -f2)
         echo "dry run for patch $n..."
-        local conflicted=`svn patch --dry-run .patches/patch-$n | grep "^C" | wc -l`
-        if (( conflicted > 0)); then
-            echo "WARNING: patch $n will result in conflicted status. Exiting..."
+        local conflicts=`svn patch --dry-run .patches/patch-$n | grep "^C" | wc -l`
+        if (( conflicts > 0)); then
+            echo "dry run for patch $n resulted in conflicts. Exiting..."
+            echo "figure out what to do with patch $n"
+            echo "then rebase <branch> --continue"
             break
         fi
         echo "dry run for patch $n successful. Applying..."
@@ -40,9 +43,8 @@ function rebase {
     if (( $# == 1 )); then
         save_patches
         svn switch ^/trunk
-        svn remove $branch -m "removed before rebase"
-        svn copy --parents $1 $branch -m "rebase starts here"
-        svn switch $branch
+        svn copy --parents $1 $branch-rebased -m "rebase starts here"
+        svn switch $branch-rebased
     fi
     apply_patches
     svn update
