@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /usr/local/src/lib/rebase.sh
+
 function prepare_for_rebase_exploration {
     cd /usr/local/src/demos/4.branches
     rm -rf server
@@ -29,20 +31,6 @@ function prepare_for_rebase_exploration {
     svn commit -m "file modified in branch"
     svn update
 }
-function save_patches {
-    mkdir .patches
-    local count=$(( $(svn log --stop-on-copy | grep "r[0-9]* |" | wc -l) - 1 ))
-    local i=0
-    for r in $(svn log --stop-on-copy | grep "r[0-9]* |" | cut -d'|' -f1 | cut -d' ' -f1); do
-        local n=$(( $count -$i ))
-        if (( n > 0 )); then
-            svn diff --change $r > .patches/patch-$n
-            local message=`svn log -$r | tail -n +4 | head -n -1`
-            echo "$message" > .patches/patch-$n-commit-message
-        fi
-        i=$(( $i + 1 ))
-    done    
-}
 function test_patch_1_is_for_expected_revision {
     prepare_for_rebase_exploration
     save_patches
@@ -71,23 +59,6 @@ function test_dont_keep_patch_for_original_branching_out_operation {
 
     assertequals $count 2
 }
-function apply_patches {
-    for candidate in `ls .patches/patch*-commit-message`; do
-        local n=$(echo "$candidate" | cut -d'/' -f2 | cut -d'-' -f2)
-        echo "dry run for patch $n..."
-        local conflicted=`svn patch --dry-run .patches/patch-$n | grep "^C" | wc -l`
-        if (( conflicted > 0)); then
-            echo "WARNING: patch $n will result in conflicted status. Exiting..."
-            break
-        fi
-        echo "dry run for patch $n successful. Applying..."
-        svn patch .patches/patch-$n
-
-        local message=`cat .patches/patch-$n-commit-message`
-        svn commit -m "$message"
-        mv .patches/patch-$n-commit-message .patches/patch-$n-commit-message-applied
-    done
-}
 function test_rebase_applies_patches_on_top_of_base {
     prepare_for_rebase_exploration
 
@@ -101,22 +72,6 @@ function test_rebase_applies_patches_on_top_of_base {
     local number=`svn info --show-item revision`    
     
     assertequals "$(svn log -r$number | commit_message)" "file modified in branch"
-}
-function rebase {
-    local branch=`svn info --show-item relative-url`
-    if (( `echo $branch | grep "trunk" | wc -l` > 0 )); then
-        echo "no go!"
-        return
-    fi
-    if (( $# == 1 )); then
-        save_patches
-        svn switch ^/trunk
-        svn remove $branch -m "removed before rebase"
-        svn copy --parents $1 $branch -m "rebase starts here"
-        svn switch $branch
-    fi
-    apply_patches
-    svn update
 }
 function test_my_rebase_updates_working_copy {
     prepare_for_rebase_exploration
