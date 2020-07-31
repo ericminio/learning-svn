@@ -46,10 +46,8 @@ function rebase {
     fi
     if (( $# == 1 )); then
         save_patches
-        svn switch ^/trunk
-        svn remove $branch -m "1.remove branch, 2.recreate, 3.apply patches"
-        local message=`cat .patches/branch-creation-commit-message`
-        svn copy --parents $1 $branch -m "$message"
+        svn remove $branch -m "1.remove, 2.recreate, 3.apply patches"
+        svn copy --parents $1 $branch -m "$(cat .patches/branch-creation-commit-message)"
         svn switch $branch
     fi
     apply_patches
