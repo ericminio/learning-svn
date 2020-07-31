@@ -4,4 +4,4 @@ services:
     - docker
 script:
     - chmod +x ./support/test.sh
-    - docker-compose run --rm svn ./support/test.sh ./demos
+    - docker-compose run --rm svn ./support/share/testing/lib/test.sh ./demos
