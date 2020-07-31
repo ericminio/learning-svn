@@ -43,8 +43,9 @@ function rebase {
     if (( $# == 1 )); then
         save_patches
         svn switch ^/trunk
-        svn copy --parents $1 $branch-rebased -m "message:rebase starts here"
-        svn switch $branch-rebased
+        svn remove $branch -m "remove branch"
+        svn copy --parents $1 $branch -m "message:rebase starts here"
+        svn switch $branch
     fi
     apply_patches
     svn update

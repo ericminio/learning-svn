@@ -8,7 +8,7 @@ function prepare_for_rebase_exploration {
     rm -rf clients
 
     svnadmin create server
-    svn mkdir file:///usr/local/src/demos/4.branches/server/trunk -m "trunk created"
+    svn mkdir file:///usr/local/src/demos/4.branches/server/trunk -m "message:trunk created"
     
     mkdir -p clients/bob
     cd clients/bob
@@ -16,19 +16,19 @@ function prepare_for_rebase_exploration {
 
     echo "hello trunk" > trunk.txt
     svn add trunk.txt
-    svn commit -m "file added in trunk"
+    svn commit -m "message:file added in trunk"
 
-    svn copy --parents ^/trunk ^/branches/one -m "branched from trunk"
+    svn copy --parents ^/trunk ^/branches/one -m "message:branched from trunk"
 
     echo "modified" >> trunk.txt
-    svn commit -m "file modified in trunk"
+    svn commit -m "message:file modified in trunk"
 
     svn switch ^/branches/one
     echo "hello branch" > branch.txt
     svn add branch.txt
-    svn commit -m "file added in branch"    
+    svn commit -m "message:file added in branch"    
     echo "modified" >> branch.txt
-    svn commit -m "file modified in branch"
+    svn commit -m "message:file modified in branch"
     svn update
 }
 function test_patch_1_is_for_expected_revision {
@@ -50,7 +50,7 @@ function test_save_commit_message {
     save_patches
     local message=`cat .patches/patch-1-commit-message`
 
-    assertequals "$message" "file added in branch"
+    assertequals "$message" "message:file added in branch"
 }
 function test_dont_keep_patch_for_original_branching_out_operation {
     prepare_for_rebase_exploration
@@ -71,7 +71,7 @@ function test_applied_patches_are_on_top_of_base {
     svn update
     local number=`svn info --show-item revision`    
     
-    assertequals "$(svn log -r$number | commit_message)" "file modified in branch"
+    assertequals "$(svn log -r$number | commit_message)" "message:file modified in branch"
 }
 function test_rebase_ends_up_in_rebased_branch {
     prepare_for_rebase_exploration
@@ -80,7 +80,7 @@ function test_rebase_ends_up_in_rebased_branch {
     svn switch ^/branches/one
     rebase ^/trunk
 
-    assertequals "$(svn info --show-item relative-url)" "^/branches/one-rebased"
+    assertequals "$(svn info --show-item relative-url)" "^/branches/one"
 }
 function test_rebase_updates_working_copy {
     prepare_for_rebase_exploration
@@ -89,7 +89,14 @@ function test_rebase_updates_working_copy {
     svn switch ^/branches/one
     rebase ^/trunk
 
-    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "file modified in branch"
+    assertequals "$(svn log |grep "message")" "$(
+        echo "message:file modified in branch" &&
+        echo "message:file added in branch" &&
+        echo "message:rebase starts here" &&
+        echo "message:file modified in trunk" &&
+        echo "message:file added in trunk" &&
+        echo "message:trunk created"
+    )"
 }
 function test_rebase_is_protected_against_trunk_destruction {
     prepare_for_rebase_exploration
@@ -140,7 +147,7 @@ function test_rebase_stops_before_first_conflict {
     svn switch ^/branches/one
     rebase ^/trunk
     
-    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "message:file added in branch"
+    assertequals "$(svn log --limit 1 ^/branches/one | commit_message)" "message:file added in branch"
 }
 function test_rebase_offers_one_way_to_continue_after_conflict {
     prepare_for_rebase_exploration_with_conflict
@@ -152,26 +159,21 @@ function test_rebase_offers_one_way_to_continue_after_conflict {
     mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
     rebase ^/trunk --continue
 
-    assertequals "$(svn log --limit 1 ^/branches/one-rebased | commit_message)" "message:branch file modified in branch"
+    assertequals "$(svn log --limit 1 ^/branches/one | commit_message)" "message:branch file modified in branch"
 }
 
 function test_rebase_complete_story {
     prepare_for_rebase_exploration_with_conflict
-
     cd /usr/local/src/demos/4.branches/clients/bob
+    
+    svn copy ^/branches/one ^/branches/one-snapshot -m "ready for the unexpected"    
     svn switch ^/branches/one
     rebase ^/trunk
     
     mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
     rebase ^/trunk --continue
 
-    svn remove ^/branches/one -m "old branch removed"
-    svn rename ^/branches/one-rebased ^/branches/one -m "message:rebase complete"
-    svn switch ^/branches/one
-    svn update
-
     assertequals "$(svn log |grep "message")" "$(
-        echo "message:rebase complete" &&
         echo "message:branch file modified in branch" &&
         echo "message:file added in branch" &&
         echo "message:rebase starts here" &&
@@ -182,18 +184,18 @@ function test_rebase_complete_story {
 }
 function test_rebase_complete_story_ends_up_ready_for_next_rebase {
     prepare_for_rebase_exploration_with_conflict
-
     cd /usr/local/src/demos/4.branches/clients/bob
+    
+    svn copy ^/branches/one ^/branches/one-snapshot -m "ready for the unexpected"    
     svn switch ^/branches/one
     rebase ^/trunk
     
     mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
     rebase ^/trunk --continue
 
-    svn remove ^/branches/one -m "old branch removed"
-    svn rename ^/branches/one-rebased ^/branches/one -m "message:rebase complete"
-    svn switch ^/branches/one
-    svn update
-
-    assertequals "$(svn log --stop-on-copy |grep "message")" "message:rebase complete"
+    assertequals "$(svn log --stop-on-copy |grep "message")" "$(
+        echo "message:branch file modified in branch" &&
+        echo "message:file added in branch" &&
+        echo "message:rebase starts here"
+    )"
 }
