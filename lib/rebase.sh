@@ -12,6 +12,10 @@ function save_patches {
             local message=`svn log -$r | tail -n +4 | head -n -1`
             echo "$message" > .patches/patch-$n-commit-message
         fi
+        if (( n == 0 )); then
+            local message=`svn log -$r | tail -n +4 | head -n -1`
+            echo "$message" > .patches/branch-creation-commit-message
+        fi
         i=$(( $i + 1 ))
     done    
 }
@@ -43,8 +47,9 @@ function rebase {
     if (( $# == 1 )); then
         save_patches
         svn switch ^/trunk
-        svn remove $branch -m "remove branch"
-        svn copy --parents $1 $branch -m "message:rebase starts here"
+        svn remove $branch -m "1.remove branch, 2.recreate, 3.apply patches"
+        local message=`cat .patches/branch-creation-commit-message`
+        svn copy --parents $1 $branch -m "$message"
         svn switch $branch
     fi
     apply_patches

@@ -92,7 +92,7 @@ function test_rebase_updates_working_copy {
     assertequals "$(svn log |grep "message")" "$(
         echo "message:file modified in branch" &&
         echo "message:file added in branch" &&
-        echo "message:rebase starts here" &&
+        echo "message:branched from trunk" &&
         echo "message:file modified in trunk" &&
         echo "message:file added in trunk" &&
         echo "message:trunk created"
@@ -170,13 +170,13 @@ function test_rebase_complete_story {
     svn switch ^/branches/one
     rebase ^/trunk
     
-    mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
+    mv .patches/patch-2-commit-message .patches/patch-2-commit-message-skip-me
     rebase ^/trunk --continue
 
     assertequals "$(svn log |grep "message")" "$(
         echo "message:branch file modified in branch" &&
         echo "message:file added in branch" &&
-        echo "message:rebase starts here" &&
+        echo "message:branched from trunk" &&
         echo "message:trunk file modified in trunk" &&
         echo "message:file added in trunk" &&
         echo "message:trunk created"
@@ -190,12 +190,12 @@ function test_rebase_complete_story_ends_up_ready_for_next_rebase {
     svn switch ^/branches/one
     rebase ^/trunk
     
-    mv .patches/patch-2-commit-message .patches/patch-2-commit-message-ignored
+    mv .patches/patch-2-commit-message .patches/patch-2-commit-message-skip-me
     rebase ^/trunk --continue
 
     assertequals "$(svn log --stop-on-copy |grep "message")" "$(
         echo "message:branch file modified in branch" &&
         echo "message:file added in branch" &&
-        echo "message:rebase starts here"
+        echo "message:branched from trunk"
     )"
 }
